@@ -98,6 +98,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 	
 	private String classSource;
 	private String classDebug;
+	TaintChecker taintChecker = Configuration.TAINT_CHECKER;
 	
 	@Override
 	public void visitSource(String source, String debug) {
@@ -108,6 +109,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 	
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		
 		addTaintField = true;
 		addTaintMethod = true;
 		this.generateExtraLVDebug = name.equals("java/lang/invoke/MethodType");
@@ -702,9 +704,10 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 						mv.visitFieldInsn(Opcodes.PUTFIELD, className, "value" + TaintUtils.TAINT_FIELD, taintType.getDescriptor());
 						
 						mv.visitVarInsn(Opcodes.ILOAD, 1);
-						mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(TaintChecker.class), "setTaints", "("+taintType.getDescriptor()+"I)V", false);
+						
+						mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "setTaints", "("+taintType.getDescriptor()+"I)V", false);
 //=======
-//						mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(TaintChecker.class), "setTaints", "([II)V", false);
+//						mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "setTaints", "([II)V", false);
 					} else if ((className.equals(TaintPassingMV.INTEGER_NAME) || className.equals(TaintPassingMV.LONG_NAME) || className.equals(TaintPassingMV.FLOAT_NAME) || className
 							.equals(TaintPassingMV.DOUBLE_NAME))) {
 						//For primitive types, also set the "value" field
@@ -755,7 +758,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 						mv.visitFieldInsn(Opcodes.PUTFIELD, className, "value" + TaintUtils.TAINT_FIELD, taintType.getDescriptor());
 						
 						mv.visitVarInsn(Opcodes.ALOAD, 1);
-						mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(TaintChecker.class), "setTaints", "("+taintType.getDescriptor()+"Ljava/lang/Object;)V", false);
+						mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "setTaints", "("+taintType.getDescriptor()+"Ljava/lang/Object;)V", false);
 
 					}  else if ((className.equals(TaintPassingMV.INTEGER_NAME) || className.equals(TaintPassingMV.LONG_NAME) || className.equals(TaintPassingMV.FLOAT_NAME) || className
 							.equals(TaintPassingMV.DOUBLE_NAME))) {

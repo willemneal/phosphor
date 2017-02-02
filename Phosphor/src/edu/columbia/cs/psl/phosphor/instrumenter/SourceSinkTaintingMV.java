@@ -23,9 +23,11 @@ public class SourceSinkTaintingMV extends MethodVisitor implements Opcodes {
 	int access;
 	boolean isStatic;
 	Object lbl;
+	TaintChecker taintChecker = Configuration.TAINT_CHECKER;
 
 	public SourceSinkTaintingMV(MethodVisitor mv, int access, String owner, String name, String desc, String origDesc) {
 		super(ASM5, mv);
+		//System.out.println("Source"+ this.taintChecker.getClass());
 		this.owner = owner;
 		this.name = name;
 		this.desc = desc;
@@ -66,13 +68,13 @@ public class SourceSinkTaintingMV extends MethodVisitor implements Opcodes {
 				if (args[i].getSort() == Type.OBJECT) {
 					super.visitVarInsn(ALOAD, idx);
 					loadSourceLblAndMakeTaint();
-					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(TaintChecker.class), "setTaints", "(Ljava/lang/Object;" + Configuration.TAINT_TAG_DESC + ")V", false);
+					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "setTaints", "(Ljava/lang/Object;" + Configuration.TAINT_TAG_DESC + ")V", false);
 				} else if (!skipNextArray && args[i].getSort() == Type.ARRAY
 						&& (args[i].getElementType().getSort() != Type.OBJECT || args[i].getDescriptor().equals(Configuration.TAINT_TAG_ARRAYDESC)) && args[i].getDimensions() == 1) {
 					skipNextArray = true;
 					super.visitVarInsn(ALOAD, idx);
 					loadSourceLblAndMakeTaint();
-					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(TaintChecker.class), "setTaints", "(" + Configuration.TAINT_TAG_ARRAYDESC + Configuration.TAINT_TAG_DESC + ")V", false);
+					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "setTaints", "(" + Configuration.TAINT_TAG_ARRAYDESC + Configuration.TAINT_TAG_DESC + ")V", false);
 				} else if (skipNextArray)
 					skipNextArray = false;
 				idx += args[i].getSize();
@@ -91,16 +93,16 @@ public class SourceSinkTaintingMV extends MethodVisitor implements Opcodes {
 							&& args[i].getDimensions() == 1) {
 						if (!skipNextPrimitive) {
 							super.visitVarInsn(ALOAD, idx);
-							super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(TaintChecker.class), "checkTaint", "(Ljava/lang/Object;)V", false);
+							super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "checkTaint", "(Ljava/lang/Object;)V", false);
 						}
 						skipNextPrimitive = !skipNextPrimitive;
 					} else {
 						super.visitVarInsn(ALOAD, idx);
-						super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(TaintChecker.class), "checkTaint", "(Ljava/lang/Object;)V", false);
+						super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "checkTaint", "(Ljava/lang/Object;)V", false);
 					}
 				} else if (!skipNextPrimitive) {
 					super.visitVarInsn(Configuration.TAINT_LOAD_OPCODE, idx);
-					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(TaintChecker.class), "checkTaint", "(" + Configuration.TAINT_TAG_DESC + ")V", false);
+					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "checkTaint", "(" + Configuration.TAINT_TAG_DESC + ")V", false);
 					skipNextPrimitive = true;
 				} else if (skipNextPrimitive)
 					skipNextPrimitive = false;
@@ -116,7 +118,7 @@ public class SourceSinkTaintingMV extends MethodVisitor implements Opcodes {
 			if (returnType.getSort() == Type.OBJECT || returnType.getSort() == Type.ARRAY) {
 				super.visitInsn(DUP);
 				loadSourceLblAndMakeTaint();
-				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(TaintChecker.class), "setTaints", "(Ljava/lang/Object;" + Configuration.TAINT_TAG_DESC + ")V", false);
+				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(this.taintChecker.getClass()), "setTaints", "(Ljava/lang/Object;" + Configuration.TAINT_TAG_DESC + ")V", false);
 			} else if (returnType.getSort() == Type.VOID) {
 
 			} else {

@@ -1,5 +1,7 @@
 package edu.columbia.cs.psl.phosphor.runtime;
 
+
+import edu.columbia.cs.psl.phosphor.runtime.Taint;
 import edu.columbia.cs.psl.phosphor.struct.ControlTaintTagStack;
 import edu.columbia.cs.psl.phosphor.struct.LazyArrayIntTags;
 import edu.columbia.cs.psl.phosphor.struct.LazyArrayObjTags;
@@ -8,37 +10,38 @@ import edu.columbia.cs.psl.phosphor.struct.LazyCharArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.TaintedWithIntTag;
 import edu.columbia.cs.psl.phosphor.struct.TaintedWithObjTag;
 
-public class TaintChecker {
-//	public static TaintChecker getInstance() {
-//		return instance;
-//	}
-//	private static TaintChecker instance;
-//	public TaintChecker() {
-//		instance = this;
-//	}
-//	public TaintChecker(TaintChecker other) {
-//		instance = other;
-//	}
+public class MyTaintChecker extends TaintChecker{
+	private static String name() {
+		String methodName = Thread.currentThread().getStackTrace()[callStackDepth].getMethodName();
+		return Thread.currentThread().getStackTrace()[callStackDepth].getClassName() +"."
+				   + methodName.substring(0, methodName.length() - 16);
+	}
+	private static int callStackDepth = 3;
 	public static void checkTaint(int tag)
 	{
-		if(tag != 0)
-			throw new IllegalAccessError("Argument carries taint " + tag);
+					
+			if(tag != 0)
+			System.out.println(name());
 	}
+
 	public static void checkTaint(Taint tag)
 	{
+		
 		if(tag != null)
-			throw new IllegalAccessError("Argument carries taint " + tag);
+			System.out.println(name());
 	}
+
 	public static void checkTaint(Object obj) {
+		
 		if(obj == null)
 			return;
 		if (obj instanceof TaintedWithIntTag) {
 			if (((TaintedWithIntTag) obj).getPHOSPHOR_TAG() != 0)
-				throw new IllegalAccessError("Argument carries taint " + ((TaintedWithIntTag) obj).getPHOSPHOR_TAG());
+				System.out.println(name());
 		}
 		else if (obj instanceof TaintedWithObjTag) {
 			if (((TaintedWithObjTag) obj).getPHOSPHOR_TAG() != null)
-				throw new IllegalAccessError("Argument carries taint " + ((TaintedWithObjTag) obj).getPHOSPHOR_TAG());
+				System.out.println(name());
 		}
 
 		else if(obj instanceof int[])
@@ -46,7 +49,7 @@ public class TaintChecker {
 			for(int i : ((int[])obj))
 			{
 				if(i > 0)
-					throw new IllegalAccessError("Argument carries taints - example: " +i);
+					System.out.println(name());
 			}
 		}
 		else if(obj instanceof LazyArrayIntTags)
@@ -55,7 +58,7 @@ public class TaintChecker {
 			if (tags.taints != null)
 				for (int i : tags.taints) {
 					if (i > 0)
-						throw new IllegalAccessError("Argument carries taints - example: " + i);
+						System.out.println(name());
 				}
 		}
 		else if(obj instanceof LazyArrayObjTags)
@@ -64,7 +67,7 @@ public class TaintChecker {
 			if (tags.taints != null)
 				for (Object i : tags.taints) {
 					if (i != null)
-						throw new IllegalAccessError("Argument carries taints - example: " + i);
+						System.out.println(name());
 				}
 		}
 		else if(obj instanceof Object[])
@@ -77,12 +80,12 @@ public class TaintChecker {
 			ControlTaintTagStack ctrl = (ControlTaintTagStack) obj;
 			if(ctrl.taint != null && !ctrl.isEmpty())
 			{
-				throw new IllegalAccessError("Current control flow carries taints:  " + ctrl.taint);
+				System.out.println(name());
 			}
 		}
 		else if(obj instanceof Taint)
 		{
-			throw new IllegalAccessError("Argument carries taints:  " + obj);
+			System.out.println(name());
 		}
 	}
 
@@ -157,3 +160,4 @@ public class TaintChecker {
 			array[i] = tag;
 	}
 }
+
